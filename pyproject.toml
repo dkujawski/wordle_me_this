@@ -10,7 +10,7 @@ description = 'A tool for solving wordle puzzles'
 readme = 'README.md'
 license = { file='LICENSE' }
 requires-python = '>=3.8'
-dependencies = [ 'click' ]
+dependencies = [ 'click', 'tabulate' ]
 
 classifiers = [
     'Programming Language :: Python :: 3',

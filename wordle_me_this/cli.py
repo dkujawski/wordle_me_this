@@ -4,6 +4,7 @@ import asyncio
 import os
 
 import click
+import tabulate
 
 from . import const
 from . import ops
@@ -12,7 +13,7 @@ from . import ops
 @click.command()
 @click.option('--include', '-i', help='letters to include')
 @click.option('--omit', '-o', help='letters to omit')
-@click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word')
+@click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word list')
 def cli(include, omit, rebuild):
     """ list usable words from the local dict word list """
 
@@ -31,22 +32,34 @@ def cli(include, omit, rebuild):
 
     loop.run_until_complete(asyncio.wait(tasks.values()))
 
+    words = list()
     if not include and not omit:
-        for word in tasks[None].result():
-            print(word)
+        words = [w for w in tasks[None].result()]
     elif include and omit:
-        for word in tasks[id(include)].result().intersection(tasks[id(omit)].result()):
-            print(word)
+        words = [w for w in tasks[id(include)].result().intersection(tasks[id(omit)].result())]
     elif include:
-        for word in tasks[id(include)].result():
-            print(word)
+        words = [w for w in tasks[id(include)].result()]
     elif omit:
-        for word in tasks[id(omit)].result():
-            print(word)
-    else:
-        print('nothing to do')
+        words = [w for w in tasks[id(omit)].result()]
 
     loop.close()
+    if words:
+        print_columns(words)
+
+
+def columns(data: list, n: int = 20):
+    """ break out data list into 20 lists """
+    count = int(len(data)/n)
+    if count < 1:
+        return [data]
+    return [data[idx:idx+count] for idx in range(0, len(data), count)]
+
+
+def print_columns(data: list):
+    """ print in columns """
+    print()
+    print(tabulate.tabulate(columns(data), tablefmt='plain'))
+    print()
 
 
 if __name__ == '__main__':

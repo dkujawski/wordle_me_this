@@ -66,6 +66,8 @@ def build_local_word_list():
                 line = wfh.readline()
                 if not line:
                     break
+                if line[0].isupper():
+                    continue
                 word = line.translate(str.maketrans('', '', string.punctuation))
                 if len(word.strip()) == const.WORD_LENGHT:
                     cfh.write(word)
