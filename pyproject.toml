@@ -1,0 +1,27 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'wordle_me_this'
+version = '0.1.0'
+authors = [{name='Dave Kujawski', email='dave.kujawski@gmail.com'}]
+description = 'A tool for solving wordle puzzles'
+readme = 'README.md'
+license = { file='LICENSE' }
+requires-python = '>=3.8'
+dependencies = [ 'click' ]
+
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'Operating System :: Linux'
+]
+
+[project.scripts]
+wordle-me-this = 'wordle_me_this.cli:cli'
+
+[project.urls]
+'Homepage' = 'https://github.com/dkujawski/wordle_me_this'
+
+[tool.setuptools]
+packages = ['wordle_me_this']
