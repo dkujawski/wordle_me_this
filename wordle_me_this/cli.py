@@ -2,6 +2,7 @@
 """ This is the main CLI entry point """
 import asyncio
 import os
+import string
 
 import click
 import tabulate
@@ -12,8 +13,8 @@ from . import ops
 
 @click.command()
 @click.argument('position', required=False, default='', type=str)
-@click.option('--include', '-i', help='letters to include')
-@click.option('--omit', '-o', help='letters to omit')
+@click.option('--include', '-i', default='', type=str, help='letters to include')
+@click.option('--omit', '-o', default='', type=str, help='letters to omit')
 @click.option('--dupes/--no-dupes', default=True, show_default=True, type=bool, help='allow dup letters in word')
 @click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word list')
 def cli(position, include, omit, dupes, rebuild):
@@ -25,7 +26,10 @@ def cli(position, include, omit, dupes, rebuild):
     tasks = dict()
 
     loop = asyncio.get_event_loop()
-    if include:
+    if include or position:
+        for letter in position:
+            if letter in string.ascii_lowercase and letter not in include:
+                include += letter
         tasks[id(include)] = loop.create_task(
             ops.with_each_word_from_cache(
                 ops.words_with,
