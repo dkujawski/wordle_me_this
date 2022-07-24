@@ -11,10 +11,12 @@ from . import ops
 
 
 @click.command()
+@click.argument('position', required=False, default='', type=str)
 @click.option('--include', '-i', help='letters to include')
 @click.option('--omit', '-o', help='letters to omit')
+@click.option('--dupes/--no-dupes', default=True, show_default=True, type=bool, help='allow dup letters in word')
 @click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word list')
-def cli(include, omit, rebuild):
+def cli(position, include, omit, dupes, rebuild):
     """ list usable words from the local dict word list """
 
     if not os.path.exists(const.WORDS_CACHE) or rebuild:
@@ -24,11 +26,31 @@ def cli(include, omit, rebuild):
 
     loop = asyncio.get_event_loop()
     if include:
-        tasks[id(include)] = loop.create_task(ops.with_each_word_from_cache(ops.words_with, include))
+        tasks[id(include)] = loop.create_task(
+            ops.with_each_word_from_cache(
+                ops.words_with,
+                position,
+                include,
+                dupes_ok=dupes,
+            )
+        )
     if omit:
-        tasks[id(omit)] = loop.create_task(ops.with_each_word_from_cache(ops.words_without, omit))
+        tasks[id(omit)] = loop.create_task(
+            ops.with_each_word_from_cache(
+                ops.words_without,
+                position,
+                omit,
+                dupes_ok=dupes
+            )
+        )
     if not include and not omit:
-        tasks[None] = loop.create_task(ops.with_each_word_from_cache(ops.start_words, max_words=const.N_START_WORDS))
+        tasks[None] = loop.create_task(
+            ops.with_each_word_from_cache(
+                ops.start_words,
+                position,
+                max_words=const.N_START_WORDS
+            )
+        )
 
     loop.run_until_complete(asyncio.wait(tasks.values()))
 
@@ -47,7 +69,7 @@ def cli(include, omit, rebuild):
         print_columns(words)
 
 
-def columns(data: list, n: int = 20):
+def columns(data: list, n: int = 3):
     """ break out data list into 20 lists """
     count = int(len(data)/n)
     if count < 1:

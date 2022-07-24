@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'wordle_me_this'
-version = '0.1.0'
+version = '1.1.1'
 authors = [{name='Dave Kujawski', email='dave.kujawski@gmail.com'}]
 description = 'A tool for solving wordle puzzles'
 readme = 'README.md'

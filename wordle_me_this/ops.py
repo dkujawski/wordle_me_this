@@ -2,6 +2,8 @@ import os
 import random
 import string
 
+from typing import Callable
+
 from . import const
 
 
@@ -14,7 +16,13 @@ def vowel_ratio(word: str):
     return len(const.VOWELS.intersection(set(word))) / float(len(word))
 
 
-async def with_each_word_from_cache(func, letters: str = '', max_words: int = -1, dupes_ok: bool = True):
+async def with_each_word_from_cache(
+    func: Callable,
+    position: str,
+    letters: str = '',
+    max_words: int = -1,
+    dupes_ok: bool = True,
+):
     """ check each word to see if it meets criteria """
     found = set()
     with open(const.WORDS_CACHE, 'r', encoding='utf-8') as wcfh:
@@ -25,6 +33,16 @@ async def with_each_word_from_cache(func, letters: str = '', max_words: int = -1
             if not dupes_ok:
                 if len(set(word)) < len(word):
                     continue
+            no_match = False
+            for idx, letter in enumerate(position):
+                if letter not in string.ascii_lowercase:
+                    continue
+                if idx >= len(word):
+                    continue
+                if word[idx] != letter:
+                    no_match = True
+            if no_match:
+                continue
             if func(word, letters):
                 found.add(word)
     if max_words > 0:
