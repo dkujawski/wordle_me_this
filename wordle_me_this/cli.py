@@ -18,7 +18,9 @@ from . import ops
 @click.option('--dupes/--no-dupes', default=True, show_default=True, type=bool, help='allow dup letters in word')
 @click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word list')
 def cli(position, include, omit, dupes, rebuild):
-    """ list usable words from the local dict word list """
+    """ list usable words from the local dict word list. use the POSITION argument to identify which letters
+        should be in which places. any non-alpha letter for blanks.  like: ".o.e." or "s__rt"
+    """
 
     if not os.path.exists(const.WORDS_CACHE) or rebuild:
         ops.build_local_word_list()

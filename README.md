@@ -19,17 +19,18 @@ $ python -m pip install .
 # Usage
 
 ```
-$ wordle-me-this --help
-Usage: wordle-me-this [OPTIONS]
+Usage: python -m wordle_me_this [OPTIONS] [POSITION]
 
-  list usable words from the local dict word list
+  list usable words from the local dict word list. use the POSITION argument
+  to identify which letters should be in which places. any non-alpha letter
+  for blanks.  like: ".o.e." or "s__rt"
 
 Options:
-  -i, --include TEXT  letters to include
-  -o, --omit TEXT     letters to omit
-  --rebuild           rebuild cached word
-  --help              Show this message and exit.
-
+  -i, --include TEXT    letters to include
+  -o, --omit TEXT       letters to omit
+  --dupes / --no-dupes  allow dup letters in word  [default: dupes]
+  --rebuild             rebuild cached word list
+  --help                Show this message and exit.
 ```
 
 ## Suggest a start word
@@ -57,3 +58,13 @@ cilia
 ...
 ```
 
+## Show words where 'a' is the second letter and 's' is the last letter
+```
+$ wordle-me-this _a__s -i y -o ktio
+
+yawls  yawns  yards
+babys  ladys  zanys
+yarns  navys  manys
+yawss
+
+```
