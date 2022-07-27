@@ -15,8 +15,8 @@ from . import ops
 @click.argument('position', required=False, default='', type=str)
 @click.option('--include', '-i', default='', type=str, help='letters to include')
 @click.option('--omit', '-o', default='', type=str, help='letters to omit')
-@click.option('--dupes/--no-dupes', default=True, show_default=True, type=bool, help='allow dup letters in word')
-@click.option('--rebuild', is_flag=True, default=False, help='rebuild cached word list')
+@click.option('--dupes/--no-dupes', default=True, show_default=True, help='allow dup letters in word')
+@click.option('--rebuild', is_flag=True, help='rebuild cached word list')
 def cli(position, include, omit, dupes, rebuild):
     """ list usable words from the local dict word list. use the POSITION argument to identify which letters
         should be in which places. any non-alpha letter for blanks.  like: ".o.e." or "s__rt"
@@ -54,7 +54,9 @@ def cli(position, include, omit, dupes, rebuild):
             ops.with_each_word_from_cache(
                 ops.start_words,
                 position,
-                max_words=const.N_START_WORDS
+                max_words=const.N_START_WORDS,
+                mostly_vowels=True,
+                random_sample=True,
             )
         )
 
