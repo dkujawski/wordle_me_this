@@ -4,7 +4,7 @@ import asyncio
 import os
 import string
 
-from collections import Counter
+from collections import Counter, defaultdict
 
 import click
 import tabulate
@@ -42,18 +42,10 @@ def cli(position, include, omit, exclude_position, dupes, rebuild):
                 exclude_position,
                 include,
                 dupes_ok=dupes,
-            )
-        )
+            ))
     if omit or exclude_position:
         tasks[id(omit)] = loop.create_task(
-            ops.with_each_word_from_cache(
-                ops.word_without,
-                position,
-                exclude_position,
-                omit,
-                dupes_ok=dupes
-            )
-        )
+            ops.with_each_word_from_cache(ops.word_without, position, exclude_position, omit, dupes_ok=dupes))
     if not include and not omit:
         tasks[None] = loop.create_task(
             ops.with_each_word_from_cache(
@@ -63,8 +55,7 @@ def cli(position, include, omit, exclude_position, dupes, rebuild):
                 max_words=const.N_START_WORDS,
                 mostly_vowels=True,
                 random_sample=True,
-            )
-        )
+            ))
 
     loop.run_until_complete(asyncio.wait(tasks.values()))
 
@@ -87,18 +78,21 @@ def cli(position, include, omit, exclude_position, dupes, rebuild):
 
 def columns(data: list, n: int = 3):
     """ break out data list into 20 lists """
-    count = int(len(data)/n)
+    count = int(len(data) / n)
     if count < 1:
         return [data]
-    return [data[idx:idx+count] for idx in range(0, len(data), count)]
+    return [data[idx:idx + count] for idx in range(0, len(data), count)]
 
 
 def print_letter_dis(data: list):
-    letter_dist = dict()
+    letter_dist = defaultdict(int)
     for word in data:
-        letter_dist.update(Counter(word))
-    for letter, count in {k: v for k, v in sorted(letter_dist.items(), key=lambda i: i[1])}.items():
-        print(f'{letter}: {count}')
+        counts = Counter(word)
+        for k, v in counts.items():
+            letter_dist[k] += v
+    sorted_letters = {k: v for k, v in sorted(letter_dist.items(), key=lambda i: i[1])}
+    for letter in list(sorted_letters.keys())[-5:]:
+        print(f'{letter}: {sorted_letters[letter]}')
 
 
 def print_columns(data: list):
