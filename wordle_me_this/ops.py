@@ -30,9 +30,14 @@ def vowel_ratio(word: str) -> float:
     return len(const.VOWELS.intersection(set(word))) / float(len(word))
 
 
+def similar_letters(word: str) -> str:
+    return sorted(set(word))
+
+
 async def with_each_word_from_cache(
     func: Callable,
     position: str,
+    exclude_positions: list[str],
     letters: str = '',
     max_words: int = -1,
     dupes_ok: bool = True,
@@ -68,10 +73,15 @@ async def with_each_word_from_cache(
             if not word:
                 break
             if not dupes_ok:
-                if len(set(word)) < len(word):
+                # TODO: this is a filter break it out
+                if not word_without_repeated_letters(word):
                     continue
-            if not letters_match_with(word, position):
+            if not position_in_word(word, position):
+                # this is a filter break it out
                 continue
+            if len([x for x in exclude_positions if position_in_word(word, x, omit=True)]):
+                    # this is a filter break it out
+                    continue
             if func(word, letters):
                 found.add(word)
     if max_words > 0:
@@ -83,35 +93,10 @@ async def with_each_word_from_cache(
             found = set(random.sample(found, max_words))
         elif mostly_vowels:
             found = set(found[:max_words])
+    else:
+        found = sorted(found, key=similar_letters, reverse=True)
 
-    return found
-
-
-def letters_match_with(word: str, position: str) -> bool:
-    """ Compare each character in ``word`` with the ``position`` key.
-    The ``position`` is expected to be same length as ``word`` and contain
-    alpha and non-alpha characters where a non-alpha character indicates an
-    unknown letter for the given position.  Like: ``a___d`` where the first
-    letter is known to be an ``a`` and the last letter is known to be a ``d``
-    while the middle 3 letters are unknown.
-
-    Args:
-        word (str): the word being evaluated
-        position (str): the position key, like ``_i_ch``
-
-    Returns (bool):
-        ``True`` when the letters of ``word`` match the ``position`` key
-
-    """
-    if len(position) and len(word) != len(position):
-        raise ErrorUnexpectedWordLength(f"{word}:{len(word)} != {position}:{len(position)}")
-    for idx, letter in enumerate(position):
-        if letter not in string.ascii_lowercase:
-            # letter is unknown at this position
-            continue
-        if word[idx] != letter:
-            return False
-    return True
+    return set(found)
 
 
 def start_words(
@@ -141,18 +126,57 @@ def start_words(
     return True
 
 
-def words_with(word: str, letters: set):
+def word_without_positions(word: str, positions: list[str]):
+    """ omit words that match given positions """
+    return len([x for x in positions if position_in_word(word, x, omit=True)])
+
+def position_in_word(word: str, position: str, omit: bool = False) -> bool:
+    """ Compare each character in ``word`` with the ``position`` key.
+    The ``position`` is expected to be same length as ``word`` and contain
+    alpha and non-alpha characters where a non-alpha character indicates an
+    unknown letter for the given position.  Like: ``a___d`` where the first
+    letter is known to be an ``a`` and the last letter is known to be a ``d``
+    while the middle 3 letters are unknown.
+
+    Args:
+        word (str): the word being evaluated
+        position (str): the position key, like ``_i_ch``
+
+    Returns (bool):
+        ``True`` when the letters of ``word`` match the ``position`` key
+
+    """
+    if len(position) and len(word) != len(position):
+        raise ErrorUnexpectedWordLength(f"{word}:{len(word)} != {position}:{len(position)}")
+    for idx, letter in enumerate(position):
+        if letter not in string.ascii_lowercase:
+            # letter is unknown at this position
+            continue
+        if omit and word[idx] == letter:
+            return True
+        if word[idx] != letter:
+            return False
+    if omit:
+        return False
+    return True
+
+
+def word_with(word: str, letters: set):
     """ all letters in word """
     if not isinstance(letters, set):
         letters = set(letters)
     return letters.issubset(set(word))
 
 
-def words_without(word: str, letters: set):
+def word_without(word: str, letters: set):
     """ word does not contain any letters """
     unique_letters_in_word = set(word)
     return len(unique_letters_in_word) == len(unique_letters_in_word.difference(letters))
 
+
+def word_without_repeated_letters(word: str):
+    """ all letters are unique, none of them repeat in the word """
+    return len(set(word)) == len(word)
 
 def build_local_word_list():
     """ build the wordlist using the system word list """
