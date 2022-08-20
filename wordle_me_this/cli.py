@@ -72,7 +72,7 @@ def cli(position, include, omit, exclude_position, dupes, rebuild):
     loop.close()
     if words:
         #print_columns(words)
-        print_letter_dis(words)
+        print_letter_dis(words, include)
         print(" ".join(words))
 
 
@@ -84,12 +84,13 @@ def columns(data: list, n: int = 3):
     return [data[idx:idx + count] for idx in range(0, len(data), count)]
 
 
-def print_letter_dis(data: list):
+def print_letter_dis(data: list, include:str):
     letter_dist = defaultdict(int)
     for word in data:
         counts = Counter(word)
         for k, v in counts.items():
-            letter_dist[k] += v
+            if k not in include:
+                letter_dist[k] += v
     sorted_letters = {k: v for k, v in sorted(letter_dist.items(), key=lambda i: i[1])}
     for letter in list(sorted_letters.keys())[-5:]:
         print(f'{letter}: {sorted_letters[letter]}')
